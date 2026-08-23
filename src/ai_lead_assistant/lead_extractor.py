@@ -46,7 +46,7 @@ do not invet any information.
             print("\n[Notice] Rate limit hit in extract_lead, waiting 15 seconds before retry...")
             time.sleep(15)
             response = client.models.generate_content(
-                model="gemini-2.5-flash",
+                model="gemini-3.5-flash-lite",
                 contents=prompt,
                 config={
                     "response_mime_type": "application/json",

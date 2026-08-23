@@ -19,7 +19,7 @@ your main responsibities are :
 
 def ask_gemini(conversation_history):
     response = client.models.generate_content(
-        model="gemini-2.5-flash",
+        model="gemini-3.5-flash-lite",
         contents=conversation_history,
         config={
             "system_instruction": SYSTEM_INSTRUCTION
