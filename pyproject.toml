@@ -1,0 +1,35 @@
+[project]
+name = "ai-lead-assistant"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+authors = [
+    { name = "alaa-mohamed24", email = "lily.m.soby24@gmail.com" }
+]
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.141.1",
+    "google-api-python-client>=2.199.0",
+    "google-auth>=2.56.3",
+    "google-auth-httplib2>=0.4.1",
+    "google-auth-oauthlib>=1.4.0",
+    "google-genai>=2.17.0",
+    "gspread>=6.2.1",
+    "langchain>=1.3.14",
+    "langchain-community>=0.4.2",
+    "langchain-google-genai>=4.3.3",
+    "langgraph>=1.2.11",
+    "pdfplumber>=0.11.10",
+    "pydantic>=2.13.4",
+    "python-dotenv>=1.2.2",
+    "requests>=2.34.2",
+    "streamlit>=1.61.1",
+    "typing>=3.10.0.0",
+]
+
+[project.scripts]
+ai-lead-assistant = "ai_lead_assistant:main"
+
+[build-system]
+requires = ["uv_build>=0.12.0,<0.13.0"]
+build-backend = "uv_build"
