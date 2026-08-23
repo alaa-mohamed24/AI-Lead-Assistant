@@ -18,8 +18,13 @@ your main responsibities are :
 # bullidng model
 
 def ask_gemini(conversation_history):
+    formatted_contents = []
+    for msg in conversation_history:
+        role = "user" if msg["role"] == "user" else "model"
+        formatted_contents.append({"role": role, "parts": [{"text": msg["content"]}]}) 
+
     response = client.models.generate_content(
-        model="gemini-3.5-flash-lite",
+        model="gemini-1.5-flash",
         contents=conversation_history,
         config={
             "system_instruction": SYSTEM_INSTRUCTION
