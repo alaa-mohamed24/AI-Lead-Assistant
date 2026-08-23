@@ -81,8 +81,12 @@ def save_lead(lead: Lead, score: int, classification: str):
 
 
 def get_leads():
-    create_table() 
-    
+
+    try:
+        create_table() 
+    except Exception:
+        pass
+
     connection = get_connection()
     connection.row_factory = sqlite3.Row
     cursor = connection.cursor()
@@ -96,7 +100,6 @@ def get_leads():
         rows = cursor.fetchall()
         return [dict(row) for row in rows]
     except sqlite3.OperationalError:
-        # رجّع قائمة فاضية لو الجدول مش موجود أو فاضي لسه
         return []
     finally:
         connection.close()
