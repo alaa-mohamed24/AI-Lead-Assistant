@@ -1,12 +1,24 @@
-import os 
+import os
 from dotenv import load_dotenv
 import streamlit as st
+
 load_dotenv()
 
-GOOGLE_API_KEY = st.secrets.get("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY") or os.getenv("GEMINI_API_KEY")
 
-# if not GOOGLE_API_KEY:
-#     raise ValueError ( "GOOGLE_API_KEY is missing in .env file")
+def get_api_key():
+    
+    key = None
+    try:
+        key = st.secrets.get("GEMINI_API_KEY") or st.secrets.get(
+            "GOOGLE_API_KEY"
+        )
+    except Exception:
+        pass
+
+    if not key:
+        key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+
+    return key
 
 
 
