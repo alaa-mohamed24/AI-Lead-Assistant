@@ -3,31 +3,28 @@
 import time
 from google import genai
 from google.genai.errors import APIError, ClientError
-from src.ai_lead_assistant.config import GOOGLE_API_KEY
+from src.ai_lead_assistant.config import get_api_key
 from src.ai_lead_assistant.models import Lead
 
-client = genai.Client(api_key=GOOGLE_API_KEY)
-
-
 def extract_lead(conversation_history):
+    api_key = get_api_key()
+    if not api_key:
+        print("[Warning] No API key found in extract_lead")
+        return Lead()
+
+    client = genai.Client(api_key=api_key)
+
     conversation_text = ""
-
-
     for message in conversation_history:
         if isinstance(message, dict):
             role = message.get("role") or message.get("sender") or "user"
-
-            
             text = ""
-            if "parts" in message and isinstance(message["parts"], list):
-                text = message["parts"][0].get("text", "")
+            if "parts" in message and isinstance(message["parts"], list) and len(message["parts"]) > 0:
+                part = message["parts"][0]
+                text = part.get("text", "") if isinstance(part, dict) else str(part)
             else:
-                text = (
-                    message.get("content")
-                    or message.get("text")
-                    or str(message)
-                )
-
+                text = message.get("content") or message.get("text") or str(message)
+            
             conversation_text += f"{role}: {text}\n"
 
     prompt = f"""
@@ -56,12 +53,10 @@ Return the extracted information according to the Lead model.
             contents=prompt,
             config={
                 "response_mime_type": "application/json",
-                "response_schema": Lead,
-            },
+                "response_schema": Lead
+            }
         )
         return Lead.model_validate_json(response.text)
-
-    except (ClientError, APIError, Exception) as e:
-        print(f"[Warning] Failed to extract lead due to API error: {e}")
-        
+    except Exception as e:
+        print(f"[Warning] Failed to extract lead: {e}")
         return Lead()
