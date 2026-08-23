@@ -57,7 +57,7 @@ Return the extracted information according to the Lead model.
             print("\n[Notice] Rate limit hit in extract_lead, waiting 15 seconds before retry...")
             time.sleep(15)
             response = client.models.generate_content(
-                model="gemini-1.5-flash",
+                model="gemini-2.5-flash",
                 contents=prompt,
                 config={
                     "response_mime_type": "application/json",

@@ -19,7 +19,7 @@ def handel_message(conversation_history, user_message):
 
     lead= extract_lead(conversation_history)
 
-    if is_lead_compelete(lead):
+    if is_lead_complelt(lead):
 
 
         analysis = analyze_lead(lead)
