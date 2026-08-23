@@ -101,32 +101,41 @@ with tab1:
             st.info(f"❄️ Score: {score}/100 ({classification})")
 
         
+        # Extracted Lead Fields
         lead = st.session_state.get("current_lead", None)
         if lead:
-            lead_dict = (
-                lead.model_dump()
-                if hasattr(lead, "model_dump")
-                else (dict(lead) if isinstance(lead, dict) else {})
-            )
+            # تحويل الـ Lead لـ Dict مع مراعاة قيم الـ Enum
+            if hasattr(lead, "model_dump"):
+                lead_dict = lead.model_dump(mode="json")
+            elif isinstance(lead, dict):
+                lead_dict = lead
+            else:
+                lead_dict = {}
+
+            # تنظيف القيم من أي Enums أو قيم افتراضية غير مرغوبة
+            def clean_val(val):
+                if not val or "UNKNOWN" in str(val).upper():
+                    return "---"
+                return str(val)
 
             st.markdown("---")
-            st.markdown(f"**👤 Name:** {lead_dict.get('name') or '---'}")
-            st.markdown(f"**📞 Phone:** {lead_dict.get('phone') or '---'}")
+            st.markdown(f"**👤 Name:** {clean_val(lead_dict.get('name'))}")
+            st.markdown(f"**📞 Phone:** {clean_val(lead_dict.get('phone'))}")
             st.markdown(
-                f"**🏠 Property:** {lead_dict.get('property_type') or '---'}"
+                f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}"
             )
             st.markdown(
-                f"**📍 Location:** {lead_dict.get('location') or '---'}"
+                f"**📍 Location:** {clean_val(lead_dict.get('location'))}"
             )
-            st.markdown(f"**💰 Budget:** {lead_dict.get('budget') or '---'}")
+            st.markdown(f"**💰 Budget:** {clean_val(lead_dict.get('budget'))}")
             st.markdown(
-                f"**🛏️ Bedrooms:** {lead_dict.get('bedrooms') or '---'}"
-            )
-            st.markdown(
-                f"**🎨 Finishing:** {lead_dict.get('finishing') or '---'}"
+                f"**🛏️ Bedrooms:** {clean_val(lead_dict.get('bedrooms'))}"
             )
             st.markdown(
-                f"**⏱️ Timeline:** {lead_dict.get('timeline') or '---'}"
+                f"**🎨 Finishing:** {clean_val(lead_dict.get('finishing'))}"
+            )
+            st.markdown(
+                f"**⏱️ Timeline:** {clean_val(lead_dict.get('timeline'))}"
             )
         else:
             st.write("Start a conversation to see extracted details.")

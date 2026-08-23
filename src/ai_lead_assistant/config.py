@@ -14,7 +14,9 @@ def get_api_key():
     if not key:
         key = os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
     
-    return key
+    if key:
+        return str(key).strip().strip('"').strip("'")
+    return None
 
 GOOGLE_API_KEY = get_api_key()
 
