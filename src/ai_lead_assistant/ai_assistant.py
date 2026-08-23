@@ -36,20 +36,21 @@ your main responsibities are :
 def ask_gemini(conversation_history):
     formatted_contents = []
     for msg in conversation_history:
-    
         role_val = msg.get("role") or msg.get("sender") or "user"
         role = "user" if role_val in ["user", "human"] else "model"
         
-        
         text_val = msg.get("content") or msg.get("text") or str(msg)
-        
         formatted_contents.append({"role": role, "parts": [{"text": text_val}]})
 
-    response = client.models.generate_content(
-        model="gemini-2.5-flash",
-        contents=formatted_contents
-    )
-    return response.text
+    try:
+        response = client.models.generate_content(
+            model="gemini-2.5-flash",
+            contents=formatted_contents
+        )
+        return response.text
+    except Exception as e:
+        print(f"Gemini API Error: {e}")
+        return "Sorry, I am receiving too many requests right now. Please try sending your message again in a few seconds."
 
 # |----------------|
 # add history
