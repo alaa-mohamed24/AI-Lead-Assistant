@@ -46,7 +46,7 @@ def ask_gemini(conversation_history):
         formatted_contents.append({"role": role, "parts": [{"text": text_val}]})
 
     response = client.models.generate_content(
-        model="gemini-1.5-flash",
+        model="gemini-2.5-flash",
         contents=formatted_contents
     )
     return response.text

@@ -4,6 +4,27 @@ from src.ai_lead_assistant.models import Lead
 
 # calculate score
 
+def is_lead_complelt(lead:Lead):
+    if not lead.name:
+        return False
+
+    if not lead.phone:
+        return False
+
+    if not lead.property_type.value == "unknown":
+        return False
+
+    if not lead.location:
+        return False
+
+    if not lead.budget:
+        return False
+
+    if not lead.intent:
+        return False
+
+    return True
+
 def calculate_score(lead: Lead):
 
     score= 0

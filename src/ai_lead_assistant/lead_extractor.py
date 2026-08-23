@@ -19,14 +19,25 @@ def extract_lead(conversation_history):
         conversation_text += f"{role}: {text}\n"
 
 
-    prompt = f"""
-Extract the real estate lead information from the following customer message.
-customer conversation :
+    prompt = prompt = f"""
+Extract the real estate lead information from the entire customer conversation below.
+
+Customer conversation:
 {conversation_text}
 
-return the extracted information according to the Lead model.
-if a piece of information is not mentioned, leave it empty.
-do not invet any information.
+Important instructions:
+
+1. Analyze the entire conversation, not only the last message.
+2. Combine information provided by the customer across different messages.
+3. If the customer mentioned a piece of information earlier in the conversation,
+    keep it in the final Lead.
+4. Do not remove previously provided information just because it is not mentioned
+    in the latest message.
+5. Only extract information that the customer actually provided.
+6. Do not invent or assume any information.
+7. If a piece of information was never provided, leave it empty.
+
+Return the extracted information according to the Lead model.
 """
 
     # انتظار بسيط لحماية الـ Quota بين الطلبات المتتالية
