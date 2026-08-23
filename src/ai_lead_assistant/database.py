@@ -81,21 +81,25 @@ def save_lead(lead: Lead, score: int, classification: str):
 
 
 def get_leads():
+    create_table() 
+    
     connection = get_connection()
     connection.row_factory = sqlite3.Row
-    cursor= connection.cursor()
+    cursor = connection.cursor()
 
-    cursor.execute("""
-        SELECT *
-        FROM LEADS
-        ORDER BY created_at DESC
-""")
-
-    rows = cursor.fetchall()
-
-    connection.close()
-
-    return [dict(row)for row in rows]
+    try:
+        cursor.execute("""
+            SELECT *
+            FROM LEADS
+            ORDER BY created_at DESC
+        """)
+        rows = cursor.fetchall()
+        return [dict(row) for row in rows]
+    except sqlite3.OperationalError:
+        # رجّع قائمة فاضية لو الجدول مش موجود أو فاضي لسه
+        return []
+    finally:
+        connection.close()
 
 
 def get_lead_by_id(lead_id: int):

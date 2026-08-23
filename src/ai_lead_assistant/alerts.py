@@ -115,7 +115,7 @@ Classification: {classification.upper()}
 
     message = MIMEText(body)
 
-    message["to"]= "lily.m.soby24@gmail.com"
+    message["to"]= "lily.m.soby24@gmail.com, wensh0342@gmail.com"
     message["subject"]=(
         f"🔥 HOT LEAD - {lead.name}"
     )
