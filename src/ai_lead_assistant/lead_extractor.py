@@ -1,18 +1,24 @@
-# data_extraction_officer
-
 import time
+import os
+import streamlit as st
 from google import genai
+from google.genai import types
 from google.genai.errors import APIError, ClientError
-from src.ai_lead_assistant.config import get_api_key
 from src.ai_lead_assistant.models import Lead
 
+def get_api_key_safe():
+    """جلب المفتاح مع دعم Streamlit Secrets و .env"""
+    if "GEMINI_API_KEY" in st.secrets:
+        return st.secrets["GEMINI_API_KEY"]
+    return os.getenv("GEMINI_API_KEY") or os.getenv("GOOGLE_API_KEY")
+
 def extract_lead(conversation_history):
-    api_key = get_api_key()
+    api_key = get_api_key_safe()
     if not api_key:
         print("[Warning] No API key found in extract_lead")
         return Lead()
 
-    client = genai.Client(api_key=api_key,  vertexai=False)
+    client = genai.Client(api_key=api_key, vertexai=False)
 
     conversation_text = ""
     for message in conversation_history:
@@ -48,13 +54,16 @@ Return the extracted information according to the Lead model.
     time.sleep(1)
 
     try:
+        # ضبط الإعدادات باستخدام types المعتمدة من google-genai
+        config = types.GenerateContentConfig(
+            response_mime_type="application/json",
+            response_schema=Lead,
+        )
+
         response = client.models.generate_content(
             model="gemini-2.5-flash",
             contents=prompt,
-            config={
-                "response_mime_type": "application/json",
-                "response_schema": Lead
-            }
+            config=config
         )
         return Lead.model_validate_json(response.text)
     except Exception as e:

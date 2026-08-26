@@ -2,14 +2,19 @@ import os
 from dotenv import load_dotenv, find_dotenv
 from google import genai
 from google.genai import types
-
+import streamlit as st
 # 1. تحميل الـ .env وتخطي القيم القديمة في النظم
 load_dotenv(find_dotenv(), override=True)
 
-api_key = os.getenv("GEMINI_API_KEY")
+api_key = None
+
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+else:
+    api_key = os.getenv("GEMINI_API_KEY")
 
 if not api_key:
-    raise ValueError("GEMINI_API_KEY غير موجود في ملف .env")
+    raise ValueError("GEMINI_API_KEY is missing! Check Streamlit Secrets or .env file.")
 
 # 2. إنشاء الـ Client
 client = genai.Client(api_key=api_key)
