@@ -1,82 +1,62 @@
 import os
-import streamlit as st
+from dotenv import load_dotenv, find_dotenv
 from google import genai
-from google.genai.errors import APIError, ClientError
-from src.ai_lead_assistant.config import get_api_key
+from google.genai import types
+
+# 1. تحميل الـ .env وتخطي القيم القديمة في النظم
+load_dotenv(find_dotenv(), override=True)
+
+api_key = os.getenv("GEMINI_API_KEY")
+
+if not api_key:
+    raise ValueError("GEMINI_API_KEY غير موجود في ملف .env")
+
+# 2. إنشاء الـ Client
+client = genai.Client(api_key=api_key)
 
 SYSTEM_INSTRUCTION = """
-you are an AI estate lead assistant .
-your main responsibities are :
-1. understand the customer's real estate needs.
-2. have a natural and friendly conversation.
-3. collect important lead information.
-4. ask follow-up questions when important information is missing.
-5. never invent information that customer did not provide.
-6. keep the conversation focused on the customer's real estate needs.
+You are an AI real estate lead assistant.
+Your main responsibilities are:
+1. Understand the customer's real estate needs.
+2. Have a natural and friendly conversation.
+3. Collect important lead information.
+4. Ask follow-up questions when important information is missing.
+5. Never invent information that customer did not provide.
+6. Keep the conversation focused on the customer's real estate needs.
 """
 
+config = types.GenerateContentConfig(
+    system_instruction=SYSTEM_INSTRUCTION,
+)
 
-def ask_gemini(conversation_history):
-    
-    api_key = get_api_key()
-    if not api_key:
-        return "ERROR: GEMINI_API_KEY is missing in Streamlit Secrets!"
-
-    client = genai.Client(api_key=api_key,  vertexai=False)
-
-    formatted_contents = []
-    for msg in conversation_history:
-        if isinstance(msg, dict):
-            role_val = msg.get("role") or msg.get("sender") or "user"
-            role = "user" if role_val in ["user", "human"] else "model"
-
-            text_val = ""
-            if (
-                "parts" in msg
-                and isinstance(msg["parts"], list)
-                and len(msg["parts"]) > 0
-            ):
-                part = msg["parts"][0]
-                text_val = (
-                    part.get("text", "") if isinstance(part, dict) else str(part)
-                )
-            else:
-                text_val = msg.get("content") or msg.get("text") or str(msg)
-
-            formatted_contents.append(
-                {"role": role, "parts": [{"text": text_val}]}
+def chat(conversation_history: list, user_message: str) -> str:
+    # تحويل الهيستوري بالشكل المتوافق مع SDK الجديدة
+    formatted_history = []
+    for item in conversation_history:
+        role = "model" if item.get("role") in ["model", "assistant"] else "user"
+        parts = item.get("parts", [])
+        text_content = parts[0].get("text", "") if parts and isinstance(parts[0], dict) else str(parts[0] if parts else "")
+        
+        formatted_history.append(
+            types.Content(
+                role=role,
+                parts=[types.Part.from_text(text=text_content)]
             )
-
-    try:
-        response = client.models.generate_content(
-            model="gemini-2.5-flash",
-            contents=formatted_contents,
-            config={"system_instruction": SYSTEM_INSTRUCTION},
         )
-        return response.text
-    except Exception as e:
-        print("\n========== GEMINI ERROR ==========")
-        print(type(e).__name__)
-        print(e)
-        print("==================================\n")
-        return None
 
-
-def chat(conversation_history, user_message):
-    conversation_history.append(
-        {"role": "user", "parts": [{"text": user_message}]}
+    # إنشاء جلسة Chat للتعامل مع الـ History
+    chat_session = client.chats.create(
+        model="gemini-2.5-flash",
+        config=config,
+        history=formatted_history
     )
 
-    ai_response = ask_gemini(conversation_history)
+    response = chat_session.send_message(user_message)
+    ai_response = response.text
 
-    if ai_response is None:
-        return None
-
-    conversation_history.append(
-        {
-            "role": "model",
-            "parts": [{"text": ai_response}]
-        }
-    )
+    # تحديث الـ conversation_history الأصلية
+    conversation_history.append({"role": "user", "parts": [{"text": user_message}]})
+    conversation_history.append({"role": "model", "parts": [{"text": ai_response}]})
 
     return ai_response
+
