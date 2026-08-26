@@ -1,94 +1,78 @@
-# responsible for classification
-
 from src.ai_lead_assistant.models import Lead
 
-# calculate score
+def get_enum_value(val) -> str:
+    """استخراج القيمة بنص صغير أياً كان نوعها (Enum أو Str) لتجنب الأخطاء"""
+    if val is None:
+        return "unknown"
+    if hasattr(val, "value"):
+        return str(val.value).lower()
+    return str(val).lower()
 
-def is_lead_complelt(lead:Lead):
+def is_lead_complete(lead: Lead) -> bool:
     if not lead.name:
         return False
-
     if not lead.phone:
         return False
-
-    if not lead.property_type.value == "unknown":
+    if get_enum_value(lead.property_type) == "unknown":
         return False
-
     if not lead.location:
         return False
-
-    if not lead.budget:
+    if lead.budget is None:
         return False
-
     if not lead.intent:
         return False
-
     return True
 
-def calculate_score(lead: Lead):
+def calculate_score(lead: Lead) -> int:
+    score = 0
 
-    score= 0
-
-    # property type score
-
-    if lead.property_type.value != "unknown":
+    # 1. Property Type Score
+    if get_enum_value(lead.property_type) != "unknown":
         score += 10
 
-    #location score 
-
+    # 2. Location Score 
     if lead.location:
-        score +=10
+        score += 10
 
-    # budget score
-
-    if lead.budget is not None :
+    # 3. Budget Score
+    if lead.budget is not None and lead.budget > 0:
         score += 20 
 
-    # bedrooms
-
-    if lead.bedrooms is not None :
+    # 4. Bedrooms
+    if lead.bedrooms is not None:
         score += 5
 
-    # finishing
-
-    if lead.finishing.value != "unknown":
+    # 5. Finishing Score
+    if get_enum_value(lead.finishing) != "unknown":
         score += 10
 
-    # intent
-
-    if lead.intent in ["buy", "rent"]:
+    # 6. Intent Score
+    if lead.intent and str(lead.intent).lower() in ["buy", "rent"]:
         score += 10
 
-    # phone
-
+    # 7. Phone Score
     if lead.phone:
         score += 10
 
-    # timeline
+    # 8. Timeline Score
     if lead.timeline:
         score += 25
 
-    
-
     return score
 
-def classify_lead(score: int):
-
-    if score >= 80 :
-        return "hot"
-
-    elif score >= 50 :
-        return "warm"
-
+def classify_lead(score: int) -> str:
+    if score >= 80:
+        return "Hot"
+    elif score >= 50:
+        return "Warm"
     else:
-        return "cold"
+        return "Cold"
 
-
-def analyze_lead(lead: Lead):
-    score= calculate_score(lead)
+def analyze_lead(lead: Lead) -> dict:
+    score = calculate_score(lead)
     classification = classify_lead(score)
 
     return {
         "score": score,
         "classification": classification
-    }    
+    }

@@ -1,7 +1,5 @@
-
 import sys
 from pathlib import Path
-
 
 file_path = Path(__file__).resolve()
 root_path = file_path.parent.parent.parent
@@ -20,7 +18,7 @@ st.set_page_config(
 
 st.title("🏢 Real Estate AI Lead Assistant")
 
-
+# تهيئة المتغيرات في session_state
 if "conversation_history" not in st.session_state:
     st.session_state.conversation_history = []
 
@@ -41,27 +39,27 @@ with tab1:
     with col_chat:
         st.subheader("Customer Chat")
 
+        # عرض الرسائل السابقة
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.write(msg["content"])
 
         if user_input := st.chat_input("Type Your Message here...."):
-            st.session_state.messages.append(
-                {"role": "user", "content": user_input}
-            )
-            with st.chat_message("user"):
-                st.write(user_input)
+            # 1. إضافة رسالة المستخدم للواجهة ولتاريخ المحادثة
+            st.session_state.messages.append({"role": "user", "content": user_input})
+            st.session_state.conversation_history.append({"role": "user", "content": user_input})
 
             with st.spinner("AI is thinking & analyzing...."):
+                # 2. إرسال تاريخ المحادثة الكامل مع النص الجديد
                 ai_response, lead, analysis, lead_id = handel_message(
                     st.session_state.conversation_history, user_input
                 )
 
-                st.session_state.messages.append(
-                    {"role": "assistant", "content": ai_response}
-                )
+                # 3. حفظ رد المساعد في التاريخ
+                st.session_state.messages.append({"role": "assistant", "content": ai_response})
+                st.session_state.conversation_history.append({"role": "assistant", "content": ai_response})
 
-                # تحديث الـ States مع حماية القيمة
+                # 4. تحديث حالة الـ Lead والـ Analysis
                 st.session_state.current_lead = lead
                 st.session_state.current_analysis = (
                     analysis
@@ -69,14 +67,12 @@ with tab1:
                     else {"score": 0, "classification": "N/A"}
                 )
 
-            with st.chat_message("assistant"):
-                st.write(ai_response)
-                st.rerun()
+            # إعادة تشغيل الصفحة لتحديث الواجهة بالكامل
+            st.rerun()
 
     with col_info:
         st.subheader("📌 Extracted Lead Details")
 
-        
         analysis = st.session_state.get("current_analysis") or {
             "score": 0,
             "classification": "N/A",
@@ -92,7 +88,7 @@ with tab1:
             .upper()
         )
 
-        
+        # عرض التقييم بألوان مختلفة حسب التصنيف
         if classification == "HOT":
             st.error(f"🔥 Score: {score}/100 ({classification})")
         elif classification == "WARM":
@@ -100,11 +96,9 @@ with tab1:
         else:
             st.info(f"❄️ Score: {score}/100 ({classification})")
 
-        
-        # Extracted Lead Fields
+        # عرض بيانات العميل المستخرجة
         lead = st.session_state.get("current_lead", None)
         if lead:
-            # تحويل الـ Lead لـ Dict مع مراعاة قيم الـ Enum
             if hasattr(lead, "model_dump"):
                 lead_dict = lead.model_dump(mode="json")
             elif isinstance(lead, dict):
@@ -112,35 +106,25 @@ with tab1:
             else:
                 lead_dict = {}
 
-            # تنظيف القيم من أي Enums أو قيم افتراضية غير مرغوبة
             def clean_val(val):
-                if not val or "UNKNOWN" in str(val).upper():
+                if val is None or "UNKNOWN" in str(val).upper() or str(val).strip() == "":
                     return "---"
                 return str(val)
 
             st.markdown("---")
             st.markdown(f"**👤 Name:** {clean_val(lead_dict.get('name'))}")
             st.markdown(f"**📞 Phone:** {clean_val(lead_dict.get('phone'))}")
-            st.markdown(
-                f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}"
-            )
-            st.markdown(
-                f"**📍 Location:** {clean_val(lead_dict.get('location'))}"
-            )
+            st.markdown(f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}")
+            st.markdown(f"**📍 Location:** {clean_val(lead_dict.get('location'))}")
             st.markdown(f"**💰 Budget:** {clean_val(lead_dict.get('budget'))}")
-            st.markdown(
-                f"**🛏️ Bedrooms:** {clean_val(lead_dict.get('bedrooms'))}"
-            )
-            st.markdown(
-                f"**🎨 Finishing:** {clean_val(lead_dict.get('finishing'))}"
-            )
-            st.markdown(
-                f"**⏱️ Timeline:** {clean_val(lead_dict.get('timeline'))}"
-            )
+            st.markdown(f"**🛏️ Bedrooms:** {clean_val(lead_dict.get('bedrooms'))}")
+            st.markdown(f"**🎨 Finishing:** {clean_val(lead_dict.get('finishing'))}")
+            st.markdown(f"**⏱️ Timeline:** {clean_val(lead_dict.get('timeline'))}")
         else:
             st.write("Start a conversation to see extracted details.")
 
-        if st.button("🔄 Reset Conversation"):
+        st.markdown("---")
+        if st.button("🔄 Reset Conversation", use_container_width=True):
             st.session_state.conversation_history = []
             st.session_state.messages = []
             st.session_state.current_lead = None
@@ -167,11 +151,7 @@ with tab2:
             )
             m3.metric(
                 "Warm Leads ⚡",
-                len(
-                    df[
-                        df["classification"].astype(str).str.lower() == "warm"
-                    ]
-                ),
+                len(df[df["classification"].astype(str).str.lower() == "warm"]),
             )
 
         st.markdown("---")

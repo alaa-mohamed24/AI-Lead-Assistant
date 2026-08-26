@@ -1,6 +1,6 @@
 import time
 from src.ai_lead_assistant.ai_assistant import chat
-from src.ai_lead_assistant.lead_classifier import analyze_lead, is_lead_complelt
+from src.ai_lead_assistant.lead_classifier import analyze_lead, is_lead_complete
 from src.ai_lead_assistant.lead_extractor import extract_lead
 from src.ai_lead_assistant.lead_pipline import process_lead
 
@@ -24,7 +24,7 @@ def handel_message(conversation_history, user_message):
         )
 
     # Small delay to avoid sending requests too quickly
-    time.sleep(2)
+    time.sleep(1)
 
     # Default values
     lead = None
@@ -34,25 +34,19 @@ def handel_message(conversation_history, user_message):
     # 2. Extract lead
     try:
         lead = extract_lead(conversation_history)
-
     except Exception as e:
         print(f"[Warning] Extraction skipped/failed: {e}")
         return ai_response, None, None, None
 
-    # 3. Check if lead is complete
-    if lead and is_lead_complelt(lead):
-
-        time.sleep(2)
-
-        # 4. Analyze lead
+    # 3. Analyze lead EVERY TIME (حساب الـ Score والـ Classification في كل خطوة)
+    if lead:
         try:
             analysis = analyze_lead(lead)
-
         except Exception as e:
             print(f"[Warning] Analysis skipped/failed: {e}")
-            return ai_response, lead, None, None
 
-        # 5. Process lead
+    # 4. Save/Process lead ONLY if lead is complete
+    if lead and is_lead_complete(lead) and analysis:
         try:
             lead_id = process_lead(
                 lead=lead,
@@ -62,11 +56,10 @@ def handel_message(conversation_history, user_message):
                     "Unclassified"
                 )
             )
-
         except Exception as e:
             print(f"[Warning] Processing skipped/failed: {e}")
 
-    # 6. Return everything
+    # 5. Return everything
     return ai_response, lead, analysis, lead_id
 
 
