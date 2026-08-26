@@ -96,32 +96,29 @@ with tab1:
         else:
             st.info(f"❄️ Score: {score}/100 ({classification})")
 
-        # عرض بيانات العميل المستخرجة
+        # --- هنا القائمة الدائمة بدون شرط if lead ---
         lead = st.session_state.get("current_lead", None)
+        lead_dict = {}
         if lead:
             if hasattr(lead, "model_dump"):
                 lead_dict = lead.model_dump(mode="json")
             elif isinstance(lead, dict):
                 lead_dict = lead
-            else:
-                lead_dict = {}
 
-            def clean_val(val):
-                if val is None or "UNKNOWN" in str(val).upper() or str(val).strip() == "":
-                    return "---"
-                return str(val)
+        def clean_val(val):
+            if val is None or "UNKNOWN" in str(val).upper() or str(val).strip() == "":
+                return "---"
+            return str(val)
 
-            st.markdown("---")
-            st.markdown(f"**👤 Name:** {clean_val(lead_dict.get('name'))}")
-            st.markdown(f"**📞 Phone:** {clean_val(lead_dict.get('phone'))}")
-            st.markdown(f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}")
-            st.markdown(f"**📍 Location:** {clean_val(lead_dict.get('location'))}")
-            st.markdown(f"**💰 Budget:** {clean_val(lead_dict.get('budget'))}")
-            st.markdown(f"**🛏️ Bedrooms:** {clean_val(lead_dict.get('bedrooms'))}")
-            st.markdown(f"**🎨 Finishing:** {clean_val(lead_dict.get('finishing'))}")
-            st.markdown(f"**⏱️ Timeline:** {clean_val(lead_dict.get('timeline'))}")
-        else:
-            st.write("Start a conversation to see extracted details.")
+        st.markdown("---")
+        st.markdown(f"**👤 Name:** {clean_val(lead_dict.get('name'))}")
+        st.markdown(f"**📞 Phone:** {clean_val(lead_dict.get('phone'))}")
+        st.markdown(f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}")
+        st.markdown(f"**📍 Location:** {clean_val(lead_dict.get('location'))}")
+        st.markdown(f"**💰 Budget:** {clean_val(lead_dict.get('budget'))}")
+        st.markdown(f"**🛏️ Bedrooms:** {clean_val(lead_dict.get('bedrooms'))}")
+        st.markdown(f"**🎨 Finishing:** {clean_val(lead_dict.get('finishing'))}")
+        st.markdown(f"**⏱️ Timeline:** {clean_val(lead_dict.get('timeline'))}")
 
         st.markdown("---")
         if st.button("🔄 Reset Conversation", use_container_width=True):
