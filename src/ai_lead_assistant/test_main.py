@@ -25,3 +25,15 @@ for message in messages:
 
     print("\nAnalysis:")
     print(analysis)
+
+# import os
+# from dotenv import load_dotenv
+
+# # تحميل المتغيرات من ملف .env
+# load_dotenv()
+
+# # قراءة الـ API Key من البيئة
+# api_key = os.getenv("GOOGLE_API_KEY") 
+
+
+# print("API KEY:", repr(api_key))

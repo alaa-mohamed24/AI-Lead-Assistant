@@ -12,7 +12,7 @@ def extract_lead(conversation_history):
         print("[Warning] No API key found in extract_lead")
         return Lead()
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key,  vertexai=False)
 
     conversation_text = ""
     for message in conversation_history:

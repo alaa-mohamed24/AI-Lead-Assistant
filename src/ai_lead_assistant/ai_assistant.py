@@ -22,7 +22,7 @@ def ask_gemini(conversation_history):
     if not api_key:
         return "ERROR: GEMINI_API_KEY is missing in Streamlit Secrets!"
 
-    client = genai.Client(api_key=api_key)
+    client = genai.Client(api_key=api_key,  vertexai=False)
 
     formatted_contents = []
     for msg in conversation_history:
@@ -55,8 +55,11 @@ def ask_gemini(conversation_history):
         )
         return response.text
     except Exception as e:
-        print(f"[Gemini API Exception Caught]: {e}")
-        return "Sorry, I am receiving too many requests right now or key is invalid. Please try again in a few seconds."
+        print("\n========== GEMINI ERROR ==========")
+        print(type(e).__name__)
+        print(e)
+        print("==================================\n")
+        return None
 
 
 def chat(conversation_history, user_message):
@@ -66,8 +69,14 @@ def chat(conversation_history, user_message):
 
     ai_response = ask_gemini(conversation_history)
 
+    if ai_response is None:
+        return None
+
     conversation_history.append(
-        {"role": "model", "parts": [{"text": ai_response}]}
+        {
+            "role": "model",
+            "parts": [{"text": ai_response}]
+        }
     )
 
     return ai_response
