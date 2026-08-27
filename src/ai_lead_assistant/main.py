@@ -14,7 +14,6 @@ def handel_message(conversation_history, user_message):
         user_message
     )
 
-    
     if ai_response is None:
         return (
             "Sorry, I am having trouble processing your request right now. "
@@ -24,10 +23,8 @@ def handel_message(conversation_history, user_message):
             None
         )
 
-
     time.sleep(1)
 
-    
     lead = None
     analysis = None
     lead_id = None
@@ -35,40 +32,37 @@ def handel_message(conversation_history, user_message):
     
     try:
         lead = extract_lead(conversation_history)
+        print(f"👉 [DEBUG] Extracted Lead: {lead}")
     except Exception as e:
         print(f"[Warning] Extraction skipped/failed: {e}")
-        return ai_response, None, None, None
+        
 
     
     if lead:
         try:
             analysis = analyze_lead(lead)
+            print(f"👉 [DEBUG] Analysis: {analysis}")
         except Exception as e:
             print(f"[Warning] Analysis skipped/failed: {e}")
+            analysis = {"score": 0, "classification": "COLD"}
 
     
     if lead and is_lead_complete(lead) and analysis:
         try:
-            score= analysis.get("score", 0)
-            classification = analysis.get("classification", "unclassification")
+            score = analysis.get("score", 0) if isinstance(analysis, dict) else 0
+            classification = analysis.get("classification", "Unclassified") if isinstance(analysis, dict) else "Unclassified"
+            
+            
             lead_id = process_lead(
                 lead=lead,
-                score=score ,
+                score=score,
                 classification=classification
-                    
-                )
-
-            # if str(classification).upper() == "HOT":
-            #     try :
-            #         send_email_alert(lead, score, classification)
-            #         print("📧 Hot Lead Alert Email Sent Successfully!")
-            #     except Exception as alert_err:
-            #         print (f" [warning] failed to send email alert : {alert_err}")
+            )
+            print(f"✅ [SUCCESS] Saved to DB & Google Sheets with ID: {lead_id}")
 
         except Exception as e:
             print(f"[Warning] Processing skipped/failed: {e}")
 
-    
     return ai_response, lead, analysis, lead_id
 
 
