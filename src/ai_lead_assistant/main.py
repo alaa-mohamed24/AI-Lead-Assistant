@@ -8,7 +8,6 @@ from src.ai_lead_assistant.alerts import send_email_alert
 
 def handel_message(conversation_history, user_message):
 
-    
     ai_response = chat(
         conversation_history,
         user_message
@@ -35,7 +34,6 @@ def handel_message(conversation_history, user_message):
         print(f"👉 [DEBUG] Extracted Lead: {lead}")
     except Exception as e:
         print(f"[Warning] Extraction skipped/failed: {e}")
-        
 
     
     if lead:
@@ -47,18 +45,18 @@ def handel_message(conversation_history, user_message):
             analysis = {"score": 0, "classification": "COLD"}
 
     
-    if lead and is_lead_complete(lead) and analysis:
+    if lead and analysis:
         try:
             score = analysis.get("score", 0) if isinstance(analysis, dict) else 0
             classification = analysis.get("classification", "Unclassified") if isinstance(analysis, dict) else "Unclassified"
-            
+
             
             lead_id = process_lead(
                 lead=lead,
                 score=score,
                 classification=classification
             )
-            print(f"✅ [SUCCESS] Saved to DB & Google Sheets with ID: {lead_id}")
+            print(f"✅ [SUCCESS] Updated DB & Executed Pipeline with ID: {lead_id}")
 
         except Exception as e:
             print(f"[Warning] Processing skipped/failed: {e}")

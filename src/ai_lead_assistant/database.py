@@ -28,6 +28,8 @@ def create_table():
             intent TEXT,
             score INTEGER,
             classification TEXT,
+            status TEXT DEFAULT 'PENDING',
+            updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 
         )
@@ -147,3 +149,19 @@ def get_last_lead():
         return None
 
     return dict(row)
+
+
+# def save_or_update_lead(lead: Lead, score:int, classification:str, status:str= "PENDING"):
+#     create_table()
+#     connection= get_connection()
+#     cursor = connection.cursor()
+
+#     prop_val= lead.property_type.value if hasattr(lead.property_type, 'value') else lead.property_type
+#     fin_val = lead.finishing.value if hasattr(lead.finishing, 'value') else lead.finishing
+
+#     cursor.execute("SELECT id FROM lead WHERE phone = ? AND phone IS  NOT NULL AND phone != '' ", (lead.phone,))
+#     existing = cursor.fetchone()
+
+#     if existing :
+#         lead_id = existing[0]
+        
