@@ -51,7 +51,7 @@ def chat(conversation_history: list, user_message: str) -> str:
 
     # إنشاء جلسة Chat للتعامل مع الـ History
     chat_session = client.chats.create(
-        model="gemini-2.5-flash",
+        model="gemini-3.6-flash",
         config=config,
         history=formatted_history
     )
