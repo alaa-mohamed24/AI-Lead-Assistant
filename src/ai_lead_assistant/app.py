@@ -10,7 +10,6 @@ import pandas as pd
 import streamlit as st
 from src.ai_lead_assistant.database import get_leads
 from src.ai_lead_assistant.main import handel_message
-from src.ai_lead_assistant.sheets import get_worksheet
 
 st.set_page_config(
     page_title="Real Estate AI Lead Assistant", page_icon="🏢", layout="wide"
@@ -27,6 +26,9 @@ if "messages" not in st.session_state:
 
 if "current_lead" not in st.session_state:
     st.session_state.current_lead = None
+
+if "current_lead_id" not in st.session_state:
+    st.session_state.current_lead_id = None
 
 if "current_analysis" not in st.session_state:
     st.session_state.current_analysis = {"score": 0, "classification": "N/A"}
@@ -59,8 +61,9 @@ with tab1:
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
                 st.session_state.conversation_history.append({"role": "assistant", "content": ai_response})
 
-                # 4. تحديث حالة الـ Lead والـ Analysis
+                # 4. تحديث حالة الـ Lead والـ Analysis والـ ID
                 st.session_state.current_lead = lead
+                st.session_state.current_lead_id = lead_id
                 st.session_state.current_analysis = (
                     analysis
                     if isinstance(analysis, dict)
@@ -96,7 +99,7 @@ with tab1:
         else:
             st.info(f"❄️ Score: {score}/100 ({classification})")
 
-        # --- هنا القائمة الدائمة بدون شرط if lead ---
+        # --- عرض البيانات الاستخراجية الحالية ---
         lead = st.session_state.get("current_lead", None)
         lead_dict = {}
         if lead:
@@ -111,6 +114,7 @@ with tab1:
             return str(val)
 
         st.markdown("---")
+        st.markdown(f"**🆔 Lead ID:** {clean_val(st.session_state.get('current_lead_id'))}")
         st.markdown(f"**👤 Name:** {clean_val(lead_dict.get('name'))}")
         st.markdown(f"**📞 Phone:** {clean_val(lead_dict.get('phone'))}")
         st.markdown(f"**🏠 Property:** {clean_val(lead_dict.get('property_type'))}")
@@ -125,6 +129,7 @@ with tab1:
             st.session_state.conversation_history = []
             st.session_state.messages = []
             st.session_state.current_lead = None
+            st.session_state.current_lead_id = None
             st.session_state.current_analysis = {
                 "score": 0,
                 "classification": "N/A",
