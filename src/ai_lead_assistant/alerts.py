@@ -94,24 +94,28 @@ def send_email_alert(
         credentials=creds
     )
 
-    body= f"""
-    🔥HOT LEAD ALERT 
 
-Name: {lead.name}
-Phone: {lead.phone}
+    property_val = lead.property_type.value if hasattr(lead.property_type, 'value') else lead.property_type
+    finishing_val = lead.finishing.value if hasattr(lead.finishing, 'value') else lead.finishing
 
-Property Type: {lead.property_type.value}
-Location: {lead.location}
-Budget: {lead.budget}
-Bedrooms: {lead.bedrooms}
-Finishing: {lead.finishing.value}
+    body = f"""
+    🔥 HOT LEAD ALERT 
 
-Timeline: {lead.timeline}
-Intent: {lead.intent}
+    Name: {lead.name}
+    Phone: {lead.phone}
 
-Score: {score}
-Classification: {classification.upper()}
-"""
+    Property Type: {property_val}
+    Location: {lead.location}
+    Budget: {lead.budget}
+    Bedrooms: {lead.bedrooms}
+    Finishing: {finishing_val}
+
+    Timeline: {lead.timeline}
+    Intent: {lead.intent}
+
+    Score: {score}
+    Classification: {classification.upper()}
+    """
 
     message = MIMEText(body)
 
