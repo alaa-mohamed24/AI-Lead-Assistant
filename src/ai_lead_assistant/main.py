@@ -22,7 +22,7 @@ def handel_message(conversation_history, user_message, existing_lead_id=None):
             None
         )
 
-    time.sleep(1)
+    time.sleep(2)
 
     full_history = conversation_history + [
         {"role": "assistant", "content": ai_response}
@@ -35,6 +35,8 @@ def handel_message(conversation_history, user_message, existing_lead_id=None):
         print(f"👉 [DEBUG] Extracted Lead: {lead}")
     except Exception as e:
         print(f"[Warning] Extraction skipped/failed: {e}")
+
+    time.sleep(2)
 
     # 3. Analyze lead
     analysis = None
