@@ -1,5 +1,5 @@
 from src.ai_lead_assistant.models import Lead
-from src.ai_lead_assistant.database import save_lead, get_lead_by_id
+from src.ai_lead_assistant.database import create_table, save_lead, update_lead, get_lead_by_id
 from src.ai_lead_assistant.sheets import save_lead_to_sheet
 from src.ai_lead_assistant.alerts import send_email_alert
 from src.ai_lead_assistant.lead_classifier import is_lead_complete
@@ -7,17 +7,31 @@ from src.ai_lead_assistant.lead_classifier import is_lead_complete
 def process_lead(
         lead: Lead,
         score: int,
-        classification: str
+        classification: str,
+        existing_lead_id: int = None
 ):
-    lead_id = save_lead(
-        lead=lead,
-        score=score,
-        classification=classification
-    )
+    # التأكد دائماً من وجود الجدول حتى لو تم حذف leads.db
+    create_table()
+
+    # إذا كان هناك lead_id سابق في نفس جلسة الـ Streamlit نعمل Update، وإلا نعمل Insert
+    if existing_lead_id:
+        lead_id = update_lead(
+            lead_id=existing_lead_id,
+            lead=lead,
+            score=score,
+            classification=classification
+        )
+    else:
+        lead_id = save_lead(
+            lead=lead,
+            score=score,
+            classification=classification
+        )
 
     saved_lead = get_lead_by_id(lead_id)
     created_at = saved_lead["created_at"] if saved_lead else "N/A"
 
+    # تصدير البيانات إلى Google Sheets والتنبيه فقط إذا اكتملت بيانات العميل 100%
     if is_lead_complete(lead):
         try:
             save_lead_to_sheet(

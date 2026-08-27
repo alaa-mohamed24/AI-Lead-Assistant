@@ -41,27 +41,29 @@ with tab1:
     with col_chat:
         st.subheader("Customer Chat")
 
-        # عرض الرسائل السابقة
+        
         for msg in st.session_state.messages:
             with st.chat_message(msg["role"]):
                 st.write(msg["content"])
 
         if user_input := st.chat_input("Type Your Message here...."):
-            # 1. إضافة رسالة المستخدم للواجهة ولتاريخ المحادثة
+            
             st.session_state.messages.append({"role": "user", "content": user_input})
             st.session_state.conversation_history.append({"role": "user", "content": user_input})
 
             with st.spinner("AI is thinking & analyzing...."):
-                # 2. إرسال تاريخ المحادثة الكامل مع النص الجديد
+                
                 ai_response, lead, analysis, lead_id = handel_message(
-                    st.session_state.conversation_history, user_input
+                    st.session_state.conversation_history,
+                    user_input,
+                    existing_lead_id=st.session_state.current_lead_id
                 )
 
-                # 3. حفظ رد المساعد في التاريخ
+                
                 st.session_state.messages.append({"role": "assistant", "content": ai_response})
                 st.session_state.conversation_history.append({"role": "assistant", "content": ai_response})
 
-                # 4. تحديث حالة الـ Lead والـ Analysis والـ ID
+                
                 st.session_state.current_lead = lead
                 st.session_state.current_lead_id = lead_id
                 st.session_state.current_analysis = (
@@ -70,7 +72,6 @@ with tab1:
                     else {"score": 0, "classification": "N/A"}
                 )
 
-            # إعادة تشغيل الصفحة لتحديث الواجهة بالكامل
             st.rerun()
 
     with col_info:
