@@ -82,6 +82,47 @@ def save_lead(lead: Lead, score: int, classification: str):
     return lead_id
 
 
+def update_lead(lead_id: int, lead: Lead, score: int, classification: str):
+
+    connection = get_connection()
+    cursor = connection.cursor()
+
+    cursor.execute("""
+        UPDATE leads
+        SET
+            name = ?,
+            phone = ?,
+            property_type = ?,
+            location = ?,
+            budget = ?,
+            bedrooms = ?,
+            finishing = ?,
+            timeline = ?,
+            intent = ?,
+            score = ?,
+            classification = ?,
+            updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+    """, (
+        lead.name,
+        lead.phone,
+        lead.property_type.value,
+        lead.location,
+        lead.budget,
+        lead.bedrooms,
+        lead.finishing.value,
+        lead.timeline,
+        lead.intent,
+        score,
+        classification,
+        lead_id
+    ))
+
+    connection.commit()
+    connection.close()
+
+    return lead_id
+
 def get_leads():
 
     try:
