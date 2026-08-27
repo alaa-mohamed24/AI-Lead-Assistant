@@ -7,7 +7,6 @@ from src.ai_lead_assistant.lead_pipline import process_lead
 
 
 def handel_message(conversation_history, user_message, existing_lead_id=None):
-
     # 1. Get AI response
     ai_response = chat(
         conversation_history,
@@ -25,12 +24,11 @@ def handel_message(conversation_history, user_message, existing_lead_id=None):
 
     time.sleep(1)
 
-    
     full_history = conversation_history + [
         {"role": "assistant", "content": ai_response}
     ]
 
-    # 2. Extract lead from full conversation history
+    # 2. Extract lead
     lead = None
     try:
         lead = extract_lead(full_history)
@@ -48,7 +46,7 @@ def handel_message(conversation_history, user_message, existing_lead_id=None):
             print(f"[Warning] Analysis skipped/failed: {e}")
             analysis = {"score": 0, "classification": "COLD"}
 
-    # 4. Process Lead (Save/Update in SQLite & Conditional Export to Sheets/Email)
+    # 4. Save/Update lead
     lead_id = existing_lead_id
     if lead and analysis:
         try:
