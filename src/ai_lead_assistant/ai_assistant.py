@@ -1,67 +1,79 @@
 import os
-from dotenv import load_dotenv, find_dotenv
-from google import genai
-from google.genai import types
 import streamlit as st
-# 1. تحميل الـ .env وتخطي القيم القديمة في النظم
+from dotenv import load_dotenv, find_dotenv
+from groq import Groq
+
+# 1. تحميل الـ .env
 load_dotenv(find_dotenv(), override=True)
 
+# 2. جلب المفتاح بأمان من st.secrets أو os.getenv
 api_key = None
-
-if "GEMINI_API_KEY" in st.secrets:
-    api_key = st.secrets["GEMINI_API_KEY"]
-else:
-    api_key = os.getenv("GEMINI_API_KEY")
+try:
+    if "GROQ_API_KEY" in st.secrets:
+        api_key = st.secrets["GROQ_API_KEY"]
+except Exception:
+    pass
 
 if not api_key:
-    raise ValueError("GEMINI_API_KEY is missing! Check Streamlit Secrets or .env file.")
+    api_key = os.getenv("GROQ_API_KEY")
 
-# 2. إنشاء الـ Client
-client = genai.Client(api_key=api_key)
+if not api_key:
+    raise ValueError("❌ GROQ_API_KEY is missing! Check Streamlit Secrets or .env file.")
+
+# 3. إنشاء الـ Client الخاص بـ Groq
+client = Groq(api_key=api_key)
 
 SYSTEM_INSTRUCTION = """
 You are an AI real estate lead assistant.
 Your main responsibilities are:
 1. Understand the customer's real estate needs.
-2. Have a natural and friendly conversation.
-3. Collect important lead information.
-4. Ask follow-up questions when important information is missing.
+2. Have a natural, polite, and friendly conversation.
+3. Collect important lead information (Name, Phone, Property Type, Location, Budget, Bedrooms, Finishing, Timeline, Intent).
+4. Ask clear follow-up questions when important information is missing.
 5. Never invent information that customer did not provide.
 6. Keep the conversation focused on the customer's real estate needs.
 """
 
-config = types.GenerateContentConfig(
-    system_instruction=SYSTEM_INSTRUCTION,
-)
-
 def chat(conversation_history: list, user_message: str) -> str:
-    # تحويل الهيستوري بالشكل المتوافق مع SDK الجديدة
-    formatted_history = []
-    for item in conversation_history:
-        role = "model" if item.get("role") in ["model", "assistant"] else "user"
-        parts = item.get("parts", [])
-        text_content = parts[0].get("text", "") if parts and isinstance(parts[0], dict) else str(parts[0] if parts else "")
-        
-        formatted_history.append(
-            types.Content(
-                role=role,
-                parts=[types.Part.from_text(text=text_content)]
-            )
+    try:
+        # بناء قائمة الرسائل المتوافقة مع Groq
+        messages = [{"role": "system", "content": SYSTEM_INSTRUCTION}]
+
+        # تحويل الـ History القديم إلى صيغة Groq
+        for item in conversation_history:
+            role = "assistant" if item.get("role") in ["model", "assistant"] else "user"
+            
+            # استخراج النص سواء كان القالب القديم (parts) أو الجديد (content)
+            content = ""
+            if "content" in item:
+                content = item["content"]
+            elif "parts" in item and item["parts"]:
+                part = item["parts"][0]
+                content = part.get("text", "") if isinstance(part, dict) else str(part)
+
+            if content:
+                messages.append({"role": role, "content": content})
+
+        # إضافة رسالة المستخدم الحالية
+        messages.append({"role": "user", "content": user_message})
+
+        # إرسال الطلب لموديل Llama 3.1 الفائق السرعة
+        completion = client.chat.completions.create(
+            model="llama-3.1-8b-instant",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=1024,
         )
 
-    # إنشاء جلسة Chat للتعامل مع الـ History
-    chat_session = client.chats.create(
-        model="gemini-3.6-flash",
-        config=config,
-        history=formatted_history
-    )
+        ai_response = completion.choices[0].message.content
 
-    response = chat_session.send_message(user_message)
-    ai_response = response.text
+        # تحديث الـ conversation_history الأصلية بنفس النمط الموحد (content)
+        conversation_history.append({"role": "user", "content": user_message})
+        conversation_history.append({"role": "assistant", "content": ai_response})
 
-    # تحديث الـ conversation_history الأصلية
-    conversation_history.append({"role": "user", "parts": [{"text": user_message}]})
-    conversation_history.append({"role": "model", "parts": [{"text": ai_response}]})
+        return ai_response
 
-    return ai_response
+    except Exception as e:
+        print(f"❌ [Groq Chat Error]: {e}")
+        return "Sorry, I am having trouble processing your request right now. Please try again."
 
